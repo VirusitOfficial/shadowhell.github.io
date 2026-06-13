@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SHADOWHELL | Next RP Кавказский</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* чтобы не выделять текст при перетаскивании картинки */
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: #0a0c10;
+            color: #e0e4f0;
+            line-height: 1.4;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* ФОН из локального файла background.png */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: url('background.png') center/cover no-repeat fixed;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(2px);
+        }
+
+        .texture-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            background-image: repeating-linear-gradient(0deg, rgba(245, 197, 66, 0.03) 0px, rgba(245, 197, 66, 0.03) 2px, transparent 2px, transparent 8px),
+                              repeating-linear-gradient(90deg, rgba(245, 197, 66, 0.03) 0px, rgba(245, 197, 66, 0.03) 2px, transparent 2px, transparent 8px);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .clan-header {
+            text-align: center;
+            margin: 1rem 0 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .clan-header h1 {
+            font-family: 'Russo One', cursive;
+            font-size: 4rem;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #f5c542 0%, #e09d1e 40%, #f5c542 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 12px rgba(245, 197, 66, 0.6);
+            filter: drop-shadow(0 4px 8px black);
+        }
+
+        .clan-header p {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffdf9c;
+            border-top: 1px solid #f5c54260;
+            display: inline-block;
+            padding: 0.6rem 1.8rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            border-radius: 60px;
+        }
+
+        .btn-auth {
+            background: rgba(245, 197, 66, 0.2);
+            border: 1px solid #f5c542;
+            color: #f5c542;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-family: 'Russo One', cursive;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-auth:hover {
+            background: #f5c542;
+            color: #0a0c10;
+            box-shadow: 0 0 12px #f5c542;
+        }
+
+        /* Модальное окно для граффити */
+        .modal-graffiti {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .modal-graffiti-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .graffiti-img {
+            position: relative;
+            transform-origin: center center;
+            transition: transform 0.05s ease-out;
+            cursor: grab;
+            max-width: none;
+            user-select: none;
+            pointer-events: auto;
+        }
+        .graffiti-img:active {
+            cursor: grabbing;
+        }
+        .close-graffiti {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 40px;
+            color: #f5c542;
+            cursor: pointer;
+            z-index: 2100;
+            font-weight: bold;
+            background: none;
+            border: none;
+        }
+        .fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 100px;
+            font-size: 28px;
+            color: #f5c542;
+            cursor: pointer;
+            z-index: 2100;
+            background: none;
+            border: none;
+        }
+
+        /* Блок авторизации */
+        .auth-block {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #f5c542;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .auth-block h3 { color: #f5c542; margin-bottom: 15px; }
+        .auth-block input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #1e2538;
+            border: 1px solid #4a506b;
+            color: white;
+            border-radius: 30px;
+            text-align: center;
+        }
+        .auth-block button {
+            background: #f5c542;
+            color: #0a0c10;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .auth-block .outline-btn { background: none; border: 1px solid #f5c542; color: #f5c542; }
+        .auth-error { color: #ff8866; font-size: 14px; margin-bottom: 10px; }
+        .user-welcome {
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #f5c542;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Основные секции */
+        .section {
+            background: rgba(8, 12, 20, 0.8);
+            backdrop-filter: blur(6px);
+            border-radius: 32px;
+            margin-bottom: 2.5rem;
+            padding: 1.8rem 2rem;
+            border: 1px solid rgba(245, 197, 66, 0.5);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.7);
+        }
+        .section-title {
+            font-family: 'Russo One', cursive;
+            font-size: 2rem;
+            font-weight: 400;
+            border-left: 6px solid #f5c542;
+            padding-left: 1rem;
+            margin-bottom: 1.8rem;
+            color: #f5e7c8;
+            text-transform: uppercase;
+        }
+        /* Сетки */
+        .spare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .composite-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .card-block {
+            background: rgba(15, 19, 30, 0.9);
+            backdrop-filter: blur(4px);
+            border-radius: 24px;
+            padding: 1.2rem;
+            border: 1px solid #3a3f55;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: auto;
+        }
+        .card-block:hover { border-color: #f5c542; transform: translateY(-2px); }
+        .card-block h3 {
+            font-family: 'Russo One', cursive;
+            font-size: 1.4rem;
+            color: #f5c542;
+            cursor: pointer;
+            border-bottom: 1px dashed #f5c54280;
+            margin-bottom: 0.8rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(5, 8, 14, 0.85);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 6px 8px;
+            text-align: center;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #2f354a;
+        }
+        th { background: #1a1f30; color: #f5c542; font-size: 0.7rem; }
+        input {
+            background: #0e121f;
+            border: 1px solid #4a506b;
+            color: #f5eac1;
+            padding: 4px 6px;
+            border-radius: 12px;
+            text-align: center;
+            width: 70px;
+            font-size: 0.75rem;
+        }
+        .qty-input-small { width: 75px; }
+        .result-total { font-weight: bold; color: #f5c542; }
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        .work-col, .events-col {
+            flex: 1;
+            min-width: 280px;
+        }
+        .work-item, .event-item {
+            background: rgba(0,0,0,0.6);
+            margin-bottom: 1.2rem;
+            border-radius: 22px;
+            padding: 0.8rem 1.2rem;
+            border-left: 5px solid #f5c542;
+            cursor: pointer;
+        }
+        .work-item h4, .event-item h4 {
+            text-align: center;
+            color: #f5cd7a;
+            font-family: 'Russo One';
+            margin: 0;
+        }
+        .work-item .materials-table, .event-item .materials-table {
+            display: none;
+            margin-top: 12px;
+        }
+        .subnote { font-size: 0.7rem; text-align: center; margin-top: 0.7rem; padding-top: 0.5rem; border-top: 1px dashed #3a4058; }
+        @media (max-width: 1100px) { .composite-grid { grid-template-columns: repeat(3,1fr); } }
+        @media (max-width: 800px) { .composite-grid { grid-template-columns: repeat(2,1fr); } }
+        @media (max-width: 550px) { .composite-grid, .spare-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="texture-overlay"></div>
+<div class="container">
+    <div class="clan-header">
+        <h1>SHADOWHELL</h1>
+        <p>⚡ NEXT RP Кавказский ⚡</p>
+        <div id="authPlace"></div>
+        <button id="graffitiBtn" class="btn-auth" style="margin-top: 10px;">🎨 Граффити</button>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        <!-- РАЗДЕЛ 1: АВТОМОБИЛЬ -->
+        <div class="section">
+            <div class="section-title">🚗 СОЗДАНИЕ АВТОМОБИЛЯ</div>
+            <h3 style="text-align:center;">🔩 ЗАПЧАСТИ</h3>
+            <div class="spare-grid" id="spare-parts-container"></div>
+            <h3 style="text-align:center; margin-top:20px;">🧪 СОСТАВНЫЕ МАТЕРИАЛЫ</h3>
+            <div class="composite-grid" id="composite-container"></div>
+            <div class="itog-table">
+                <h3>📊 ИТОГОВАЯ ТАБЛИЦА (1 АВТО)</h3>
+                <table id="car-final-table"><thead><tr><th>Компоненты</th><th>Количество</th><th>В наличии</th><th>Осталось</th></tr></thead><tbody id="car-final-body"></tbody></table>
+            </div>
+        </div>
+
+        <!-- РАЗДЕЛ 2: СКИНЫ -->
+        <div class="section">
+            <div class="section-title">🎨 СОЗДАНИЕ СКИНОВ</div>
+            <div class="two-columns">
+                <div class="card-block"><h3 style="cursor:default;">🏁 СКИН РАННЕР</h3><div id="runner-materials"></div><h4>Итоговая таблица (Раннер)</h4><table id="runner-final-table"><thead><tr><th>Компоненты</th><th>Количество</th><th>В наличии</th><th>Осталось</th></tr></thead><tbody id="runner-final-body"></tbody></table></div>
+                <div class="card-block"><h3 style="cursor:default;">🌆 СКИН СТРИТОВЫЙ</h3><div id="street-materials"></div><h4>Итоговая таблица (Стритовый)</h4><table id="street-final-table"><thead><tr><th>Компоненты</th><th>Количество</th><th>В наличии</th><th>Осталось</th></tr></thead><tbody id="street-final-body"></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- РАЗДЕЛ 3: РАБОТЫ / СОБЫТИЯ с раскрывающимися блоками -->
+        <div class="section" style="clear: both; margin-top: 2rem;">
+            <div class="section-title">📦 МАТЕРИАЛЫ (РАБОТЫ / СОБЫТИЯ)</div>
+            <div class="two-columns">
+                <div class="work-col"><h3 style="text-align:center;">🛠️ РАБОТЫ</h3><div id="works-list"></div></div>
+                <div class="events-col"><h3 style="text-align:center;">⚡ СОБЫТИЯ</h3><div id="events-list"></div></div>
+            </div>
+            <div class="subnote">* Нажмите на название, чтобы открыть/закрыть таблицу. Данные сохраняются под вашим профилем.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для граффити -->
+<div id="graffitiModal" class="modal-graffiti">
+    <div class="modal-graffiti-content">
+        <button class="close-graffiti" id="closeGraffitiModal">&times;</button>
+        <button class="fullscreen-btn" id="fullscreenGraffitiBtn">⛶</button>
+        <div class="image-container" id="imageContainer">
+            <img id="graffitiImage" class="graffiti-img" src="graffiti.jpg" alt="Граффити">
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== ГРАФФИТИ: ЗУМ 0.2-5, ПАНОРАМИРОВАНИЕ ==========
+    (function() {
+        const modal = document.getElementById('graffitiModal');
+        const btn = document.getElementById('graffitiBtn');
+        const closeBtn = document.getElementById('closeGraffitiModal');
+        const img = document.getElementById('graffitiImage');
+        const container = document.getElementById('imageContainer');
+        let scale = 1;
+        let panX = 0, panY = 0;
+        let isPanning = false;
+        let startX = 0, startY = 0;
+
+        function updateTransform() {
+            img.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        }
+
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            let newScale = scale + delta;
+            newScale = Math.min(Math.max(0.2, newScale), 5);
+            if (newScale !== scale) {
+                scale = newScale;
+                updateTransform();
+            }
+        });
+
+        img.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            isPanning = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            img.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            updateTransform();
+        });
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+            img.style.cursor = 'grab';
+        });
+
+        const fullBtn = document.getElementById('fullscreenGraffitiBtn');
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                fullBtn.textContent = '✖';
+            } else {
+                document.exitFullscreen();
+                fullBtn.textContent = '⛶';
+            }
+        }
+        fullBtn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) fullBtn.textContent = '✖';
+            else fullBtn.textContent = '⛶';
+        });
+
+        btn.onclick = () => {
+            modal.style.display = 'flex';
+            scale = 1;
+            panX = 0;
+            panY = 0;
+            updateTransform();
+        };
+        closeBtn.onclick = () => { modal.style.display = 'none'; };
+        window.onclick = (event) => { if (event.target === modal) modal.style.display = 'none'; };
+    })();
+
+    // ========== СИСТЕМА РЕГИСТРАЦИИ (ЛОГИН + PIN) ==========
+    let currentUser = null;
+
+    function saveUserData() {
+        if (!currentUser) return;
+        const allData = {};
+        document.querySelectorAll('[data-user-field]').forEach(el => {
+            const field = el.getAttribute('data-user-field');
+            let value = el.value !== undefined ? el.value : el.innerText;
+            if (el.type === 'number') value = el.value;
+            allData[field] = value;
+        });
+        // дополнительные поля из составных материалов и работ/событий уже собраны выше
+        const store = JSON.parse(localStorage.getItem('shadowhell_users_data') || '{}');
+        store[currentUser] = allData;
+        localStorage.setItem('shadowhell_users_data', JSON.stringify(store));
+    }
+
+    function loadUserData() {
+        if (!currentUser) return;
+        const store = JSON.parse(localStorage.getItem('shadowhell_users_data') || '{}');
+        const userData = store[currentUser] || {};
+        for (const [field, value] of Object.entries(userData)) {
+            const el = document.querySelector(`[data-user-field="${field}"]`);
+            if (el) {
+                if (el.type === 'number' || el.tagName === 'INPUT') el.value = value;
+                else el.innerText = value;
+                el.dispatchEvent(new Event('input'));
+            }
+        }
+        // принудительно обновить динамические таблицы
+        document.querySelectorAll('.composite-grid input[type="number"]').forEach(inp => {
+            const key = inp.getAttribute('data-user-field');
+            if (key && userData[key] !== undefined) inp.value = userData[key];
+            inp.dispatchEvent(new Event('input'));
+        });
+        document.querySelectorAll('.work-item .qty-input-small, .event-item .qty-input-small').forEach(inp => {
+            const key = inp.getAttribute('data-user-field');
+            if (key && userData[key] !== undefined) inp.value = userData[key];
+            inp.dispatchEvent(new Event('input'));
+        });
+    }
+
+    function bindSaveOnInput() {
+        document.querySelectorAll('input').forEach(input => {
+            if (input.hasAttribute('data-user-field')) {
+                input.removeEventListener('input', saveUserData);
+                input.addEventListener('input', () => { saveUserData(); });
+            }
+        });
+    }
+
+    function renderAuth() {
+        const container = document.getElementById('authPlace');
+        if (!container) return;
+        if (currentUser) {
+            container.innerHTML = `
+                <div class="user-welcome">
+                    <span>👋 Привет, <strong style="color:#f5c542">${currentUser}</strong>!</span>
+                    <button class="outline-btn" id="logoutBtn">Выйти</button>
+                </div>
+            `;
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                currentUser = null;
+                renderAuth();
+                document.getElementById('mainContent').style.display = 'none';
+            });
+            document.getElementById('mainContent').style.display = 'block';
+            setTimeout(() => {
+                loadUserData();
+                bindSaveOnInput();
+            }, 50);
+            return;
+        }
+        container.innerHTML = `
+            <div class="auth-block">
+                <h3>🔐 Вход в клановую систему</h3>
+                <div class="auth-error" id="authError"></div>
+                <input type="text" id="loginInput" placeholder="Ваш логин">
+                <input type="password" id="pinInput" placeholder="PIN-код (4-6 цифр)" maxlength="6">
+                <div>
+                    <button id="loginAction">Войти</button>
+                    <button id="registerAction" class="outline-btn">Зарегистрироваться</button>
+                </div>
+                <p style="font-size: 12px; margin-top: 15px;">* Данные сохраняются в вашем браузере</p>
+            </div>
+        `;
+        document.getElementById('mainContent').style.display = 'none';
+        const loginInput = document.getElementById('loginInput');
+        const pinInput = document.getElementById('pinInput');
+        const errorDiv = document.getElementById('authError');
+        document.getElementById('loginAction')?.addEventListener('click', () => {
+            const login = loginInput.value.trim();
+            const pin = pinInput.value.trim();
+            const users = JSON.parse(localStorage.getItem('shadowhell_users') || '{}');
+            if (!login || !pin) {
+                errorDiv.innerText = '❌ Заполните оба поля';
+                return;
+            }
+            if (users[login] && users[login].pin === pin) {
+                currentUser = login;
+                renderAuth();
+            } else {
+                errorDiv.innerText = '❌ Неверный логин или PIN-код';
+            }
+        });
+        document.getElementById('registerAction')?.addEventListener('click', () => {
+            const login = loginInput.value.trim();
+            const pin = pinInput.value.trim();
+            const users = JSON.parse(localStorage.getItem('shadowhell_users') || '{}');
+            if (!login || !pin || pin.length < 4) {
+                errorDiv.innerText = '❌ Логин обязателен, PIN-код от 4 до 6 цифр';
+                return;
+            }
+            if (users[login]) {
+                errorDiv.innerText = '❌ Пользователь уже существует';
+                return;
+            }
+            users[login] = { pin };
+            localStorage.setItem('shadowhell_users', JSON.stringify(users));
+            currentUser = login;
+            renderAuth();
+        });
+    }
+
+    // ========== ДАННЫЕ ДЛЯ ТАБЛИЦ ==========
+    const spareParts = {
+        "Двигатель": [["Провода","5 шт."],["Железный слиток","6 шт."],["Шестерни","6 шт."],["Крепежи","4 шт."]],
+        "Рама": [["Краска","6 шт."],["Алюминий","8 шт."],["Железный слиток","8 шт."],["Сталь","8 шт."]],
+        "Трансмиссия": [["Сталь","10 шт."],["Шестерни","10 шт."],["Железный слиток","6 шт."],["Крепежи","7 шт."]],
+        "Колёса": [["Резина","10 шт."],["Сталь","6 шт."],["Алюминий","6 шт."]],
+        "Обивка": [["Кожа","15 шт."],["Крепежи","7 шт."],["Пиломатериалы","7 шт."],["Краска","6 шт."]]
+    };
+    const compositeData = {
+        "Железный слиток": { comps: [["Железо",3],["Камень",4],["Провода",2],["Радиодеталь",2]], defaultQty:20 },
+        "Алюминий": { comps: [["Реагенты",4],["Металлолом",1],["Электросхемы",1],["Резина",1]], defaultQty:14 },
+        "Сталь": { comps: [["Железо",4],["Металлолом",2],["Электросхемы",1],["Резина",1]], defaultQty:24 },
+        "Шестерни": { comps: [["Железо",2],["Металлолом",3],["Радиодеталь",3],["Электросхемы",2]], defaultQty:16 },
+        "Крепежи": { comps: [["Бичёвка",1],["Пластик",2],["Провода",1],["Древесина",3]], defaultQty:18 },
+        "Краска": { comps: [["Реагенты",4],["Пластик",2],["Камень",1],["Резина",1]], defaultQty:12 },
+        "Кожа": { comps: [["Текстиль",5],["Бичёвка",3],["Провода",1],["Резина",1]], defaultQty:15 },
+        "Пиломатериалы": { comps: [["Древесина",6],["Бичёвка",1],["Камень",1]], defaultQty:7 }
+    };
+    const carRequirements = {
+        "Провода":78, "Железо":188, "Камень":99, "Радиодеталь":88, "Металлолом":110,
+        "Электросхемы":70, "Бичёвка":70, "Пластик":60, "Древесина":96, "Реагенты":104,
+        "Резина":65, "Текстиль":75
+    };
+    const runnerMaterials = {
+        "Сталь": { comps: [["Железо",4],["Металлолом",2],["Электросхемы",1],["Резина",1]], defaultQty:10 },
+        "Шестерни": { comps: [["Железо",2],["Металлолом",3],["Радиодеталь",3],["Электросхемы",2]], defaultQty:8 }
+    };
+    const runnerRequirements = {
+        "Провода":20, "Железо":56, "Металлолом":84, "Электросхемы":26, "Реагенты":24, "Радиодеталь":24, "Резина":10
+    };
+    const streetMaterials = {
+        "Алюминий": { comps: [["Реагенты",4],["Металлолом",1],["Электросхемы",1],["Резина",1]], defaultQty:12 },
+        "Крепежи": { comps: [["Бичёвка",1],["Пластик",2],["Провода",1],["Древесина",3]], defaultQty:10 }
+    };
+    const streetRequirements = {
+        "Провода":50, "Металлолом":12, "Электросхемы":42, "Бичёвка":10, "Пластик":20, "Реагенты":74, "Резина":12, "Древесина":30
+    };
+    const worksData = {
+        "Фермер": ["Бичёвка","Пластик","Реагенты","Текстиль"],
+        "Автомеханик": ["Бичёвка","Провода","Радиодеталь","Электросхемы"],
+        "Инкассатор": ["Бичёвка","Древесина","Металлолом","Радиодеталь"],
+        "Водитель автобуса": ["Бичёвка","Радиодеталь","Резина","Текстиль"],
+        "Эвакуаторщик": ["Бичёвка","Железо","Металлолом","Электросхемы"],
+        "Доставка транспорта": ["Камень","Радиодеталь","Резина","Электросхемы"],
+        "Мусорщик": ["Камень","Пластик","Резина","Текстиль"],
+        "Дальнобойщик": ["Древесина","Провода","Реагенты","Электросхемы"],
+        "Промышленная рыбалка": ["Древесина","Пластик"],
+        "Дровосек": ["Древесина","Камень","Металлолом","Пластик"],
+        "Таксист": ["Железо","Металлолом","Резина","Текстиль"],
+        "Дорожный рабочий": ["Железо","Камень","Резина","Текстиль"],
+        "Лётчик": ["Железо","Радиодеталь","Реагенты","Электросхемы"],
+        "Сотрудник парка": ["Металлолом", "Провода", "Резина", "Камень"]
+    };
+    const eventsData = {
+        "Ограбление склада": ["Металлолом","Пластик","Провода"],
+        "Тренировка захвата территорий": ["Провода","Реагенты","Резина"],
+        "Сбор заражённых образцов": ["Радиодеталь","Реагенты","Электросхемы"],
+        "Поставка груза": ["Радиодеталь","Реагенты","Электросхемы"],
+        "Нелегальные гонки": ["Резина","Текстиль","Электросхемы","Металлолом","Провода"],
+        "Пожарная служба": ["Камень","Пластик","Провода","Реагенты"],
+        "Утилизация контрабанды": ["Древесина","Железо","Текстиль"],
+        "Доставка картошки": ["Древесина","Пластик","Реагенты"],
+        "Уничтожение нелегальных складов": ["Железо","Радиодеталь","Электросхемы"],
+        "Ограбление ювелирного магазина": ["Железо","Камень","Металлолом"],
+        "Ограбление нефтевышек": ["Железо","Радиодеталь","Электросхемы"],
+        "Конвой": ["Металлолом","Провода","Текстиль"],
+        "Контрабанда мотоциклов": ["Металлолом","Резина"],
+        "Общественные работы": ["Бичёвка","Металлолом","Пластик"],
+        "Ограбление магазина": ["Бичёвка","Древесина","Пластик"],
+        "Сопровождение посла": ["Бичёвка","Древесина","Текстиль"],
+        "Социальная помощь": ["Бичёвка","Камень","Реагенты"],
+        "Незаконная ловля рыбы": ["Бичёвка","Железо","Реагенты"],
+        "Незаконное выращивание": ["Древесина","Камень","Провода"],
+        "Угон авто": ["Железо","Провода","Резина"]
+    };
+
+    // ---------- ОТРИСОВКА ЗАПЧАСТЕЙ ----------
+    const spareContainer = document.getElementById('spare-parts-container');
+    for (const [partName, compList] of Object.entries(spareParts)) {
+        const card = document.createElement('div'); card.className = 'card-block';
+        const header = document.createElement('h3'); header.textContent = partName;
+        const tableDiv = document.createElement('div'); tableDiv.style.display = 'none';
+        const table = document.createElement('table');
+        table.innerHTML = `<thead><tr><th>Компонент</th><th>Количество</th></tr></thead><tbody>${compList.map(c => `<tr><td style="text-align:center">${c[0]}</td><td style="text-align:center">${c[1]}</td>`).join('')}</tbody>`;
+        tableDiv.appendChild(table);
+        card.appendChild(header); card.appendChild(tableDiv);
+        header.onclick = () => { tableDiv.style.display = tableDiv.style.display === 'none' ? 'block' : 'none'; };
+        spareContainer.appendChild(card);
+    }
+
+    // ---------- СОСТАВНЫЕ МАТЕРИАЛЫ ----------
+    const compositeContainer = document.getElementById('composite-container');
+    for (const [compName, data] of Object.entries(compositeData)) {
+        const card = document.createElement('div'); card.className = 'card-block';
+        const header = document.createElement('h3'); header.textContent = compName;
+        const contentDiv = document.createElement('div'); contentDiv.style.display = 'none';
+        const controlDiv = document.createElement('div'); controlDiv.style.textAlign = 'center';
+        const qtyInput = document.createElement('input'); qtyInput.type = 'number'; qtyInput.value = data.defaultQty;
+        qtyInput.setAttribute('data-user-field', `composite_${compName}_qty`);
+        controlDiv.innerHTML = `<label style="color:#f5c542;">📦 Создать (ед.): </label>`;
+        controlDiv.appendChild(qtyInput);
+        const table = document.createElement('table');
+        table.innerHTML = `<thead><tr><th>Компонент</th><th>Кол-во на 1 ед.</th><th>Кол-во на создание</th><th>Всего</th></td></thead><tbody></tbody>`;
+        const tbody = table.querySelector('tbody');
+        const refresh = () => {
+            const createQty = parseInt(qtyInput.value) || 0;
+            tbody.innerHTML = '';
+            for (let [mat, perUnit] of data.comps) {
+                const total = perUnit * createQty;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${mat}</td><td>${perUnit} шт.</td><td>${createQty}</td><td class="result-total">${total} шт.</td>`;
+                tbody.appendChild(tr);
+            }
+        };
+        qtyInput.addEventListener('input', refresh);
+        refresh();
+        contentDiv.appendChild(controlDiv); contentDiv.appendChild(table);
+        card.appendChild(header); card.appendChild(contentDiv);
+        header.onclick = () => { contentDiv.style.display = contentDiv.style.display === 'none' ? 'block' : 'none'; };
+        compositeContainer.appendChild(card);
+    }
+
+    // ---------- ИТОГОВЫЕ ТАБЛИЦЫ ----------
+    function renderFinalTable(requirementsObj, tableBodyId, prefix) {
+        const tbody = document.getElementById(tableBodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        for (const [comp, reqQty] of Object.entries(requirementsObj)) {
+            const row = document.createElement('tr');
+            const tdComp = document.createElement('td'); tdComp.textContent = comp;
+            const tdReq = document.createElement('td'); tdReq.textContent = `${reqQty} шт.`;
+            const tdAvail = document.createElement('td');
+            const inputAvail = document.createElement('input'); inputAvail.type = 'number'; inputAvail.value = '0'; inputAvail.min = '0';
+            inputAvail.setAttribute('data-user-field', `${prefix}_${comp}`);
+            const tdLeft = document.createElement('td'); tdLeft.className = 'result-total'; tdLeft.textContent = `${reqQty} шт.`;
+            const updateLeft = () => {
+                let avail = parseInt(inputAvail.value) || 0;
+                let left = reqQty - avail;
+                tdLeft.textContent = `${left >= 0 ? left : 0} шт.`;
+            };
+            inputAvail.addEventListener('input', updateLeft);
+            tdAvail.appendChild(inputAvail);
+            row.appendChild(tdComp); row.appendChild(tdReq); row.appendChild(tdAvail); row.appendChild(tdLeft);
+            tbody.appendChild(row);
+        }
+    }
+    renderFinalTable(carRequirements, 'car-final-body', 'car');
+    renderFinalTable(runnerRequirements, 'runner-final-body', 'runner');
+    renderFinalTable(streetRequirements, 'street-final-body', 'street');
+
+    // ---------- СКИНЫ СОСТАВНЫЕ ----------
+    function renderSkinComposite(containerId, materialsObj, skinName) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        for (const [matName, matInfo] of Object.entries(materialsObj)) {
+            const card = document.createElement('div'); card.style.cssText = 'background:#0a0e17;border-radius:16px;margin-bottom:15px;padding:8px 12px;';
+            const header = document.createElement('h4'); header.textContent = matName; header.style.cursor = 'pointer'; header.style.color = '#f5c542'; header.style.textAlign = 'center';
+            const tableDiv = document.createElement('div'); tableDiv.style.display = 'none';
+            const controlDiv = document.createElement('div'); controlDiv.style.textAlign = 'center';
+            const qtyInput = document.createElement('input'); qtyInput.type = 'number'; qtyInput.value = matInfo.defaultQty;
+            qtyInput.setAttribute('data-user-field', `skin_${skinName}_${matName}_qty`);
+            controlDiv.innerHTML = `<label>🔧 Количество на создание (ед.): </label>`;
+            controlDiv.appendChild(qtyInput);
+            const table = document.createElement('table');
+            table.innerHTML = `<thead><tr><th>Компонент</th><th>Кол-во на 1 ед.</th><th>Кол-во на создание</th><th>Всего</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            const update = () => {
+                const qty = parseInt(qtyInput.value) || 0;
+                tbody.innerHTML = '';
+                matInfo.comps.forEach(([comp, per]) => {
+                    const total = per * qty;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${comp}</td><td>${per} шт.</td><td>${qty}</td><td class="result-total">${total} шт.</td>`;
+                    tbody.appendChild(tr);
+                });
+            };
+            qtyInput.addEventListener('input', update); update();
+            tableDiv.appendChild(controlDiv); tableDiv.appendChild(table);
+            card.appendChild(header); card.appendChild(tableDiv);
+            header.onclick = () => { tableDiv.style.display = tableDiv.style.display === 'none' ? 'block' : 'none'; };
+            container.appendChild(card);
+        }
+    }
+    renderSkinComposite('runner-materials', runnerMaterials, 'runner');
+    renderSkinComposite('street-materials', streetMaterials, 'street');
+
+    // ---------- РАБОТЫ / СОБЫТИЯ (раскрывающиеся блоки) ----------
+    function renderMaterialListWithToggle(containerId, dataObj, prefix) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        for (const [name, materials] of Object.entries(dataObj)) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = prefix === 'work' ? 'work-item' : 'event-item';
+            const title = document.createElement('h4');
+            title.textContent = name;
+            const tableDiv = document.createElement('div');
+            tableDiv.className = 'materials-table';
+            const table = document.createElement('table');
+            table.className = 'material-table';
+            table.innerHTML = `<thead><tr><th>Материал</th><th>Количество</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            materials.forEach(mat => {
+                const tr = document.createElement('tr');
+                const tdMat = document.createElement('td'); tdMat.textContent = mat;
+                const tdQty = document.createElement('td');
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.classList.add('qty-input-small');
+                input.value = '0';
+                input.min = '0';
+                input.setAttribute('data-user-field', `${prefix}_${name}_${mat}`);
+                tdQty.appendChild(input);
+                tr.appendChild(tdMat); tr.appendChild(tdQty);
+                tbody.appendChild(tr);
+            });
+            tableDiv.appendChild(table);
+            itemDiv.appendChild(title);
+            itemDiv.appendChild(tableDiv);
+            title.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = tableDiv.style.display === 'block';
+                tableDiv.style.display = isVisible ? 'none' : 'block';
+            });
+            container.appendChild(itemDiv);
+        }
+    }
+
+    renderMaterialListWithToggle('works-list', worksData, 'work');
+    renderMaterialListWithToggle('events-list', eventsData, 'event');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderAuth();
+    });
+</script>
+</body>
+</html>
